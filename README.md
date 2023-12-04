@@ -1,74 +1,32 @@
-# {NYCHealth Starter Template}
+# Mpox-nowcasting-evaluation
+## Nowcasting to Monitor Real-Time Mpox Trends During the 2022 Outbreak in New York City: An Evaluation Using Reportable Disease Data Stratified by Race or Ethnicity
+[Citation & paper link]
 
- {This repository is a collection of boilerplate for creating new NYCHealth organization repositories - use it to get started right! *Replace any text with your own project info and description*}
+This repository contains the dataset, code, and codebook for the paper, "Nowcasting to Monitor Real-Time Mpox Trends During the 2022 Outbreak in New York City: An Evaluation Using Reportable Disease Data Stratified by Race or Ethnicity." These files to produce unstratified results are provided to support open and reproducible epidemiology and to fulfill journal data availability requirements. Data for stratified results, given small cell sizes, are not provided to protect patient confidentiality.
 
- {Included: an open source [license](LICENSE) as recommended by the citywide GitHub policy, a `.gitignore` [file](.gitignore) to configure to avoid publishing information that is non-public, and this README file template. See the [Standard Operating Procedures](https://github.com/nychealth/nychealth-github-sop) for more information and links describing these elements.}
+## Files:
+* mpox_nowcasting_evaluation_codebook.csv – Codebook for dataset.
+  
+* evaluation_df_public.csv - CSV dataset with records and variables used for unstratified analyses shown in paper.
+  
+* R program files with code used to produce unstratified results included in manuscript:
+  * evaluation_packages.R
+  * evaluation_helper_functions.R
+  * evaluation_code_table_2_3.R (Run first, 1/4)
+  * evaluation_code_table_4_S2.R (Run second, 2/4)
+  * evalulation_code_table_S1.R (Run third, 3/4)
+  * evaluation_code_figure_2_3_S1_S2.R (Run fourth, 4/4)
 
- {Use or replace the suggested sections below as needed by your project. **Grateful acknowledgement is made to [NYC Planning Labs](https://labs.planning.nyc.gov/) for most of the contents of this ReadMe file.**}
 
-{Replace this with a screenshot of the application or output.}
+## Dataset and Code Notes:
+The dataset and program files were created in R version 4.2.3 on platform:x86_64-redhat-linux-gnu (64-bit), running under: Red Hat Enterprise Linux 8.7 (Ootpa). 
+The dataset file can be imported into statistical software programs other than R (e.g., SAS, Python, SPSS), but the coding language in the program file is specific to R software.
 
-## How you can help
+The code requires installing NobBS from CRAN and JAGS outside of CRAN. Download instructions for NobBS are available at https://cran.r-project.org/web/packages/NobBS/index.html and for JAGS are available at https://mcmc-jags.sourceforge.io/.
 
-In the spirit of free software, everyone is encouraged to help improve this project.  Here are some ways you can contribute.
+To run the code, set up two folders: one containing the 6 R program files and one containing the dataset file. Set the "R" and "dataset" paths at the beginning of evaluation_code_table_2_3.R to these filepaths respectively. Then run the code files in this order: evaluation_code_table_2_3.R, evaluation_code_table_4_S2.R, evalulation_code_table_S1.R, evaluation_code_figure_2_3_S1_S2.R. Results will be available in the "dataset" folder.
 
-- Comment on or clarify [issues](link to issues)
-- Report [bugs](link to bugs)
-- Suggest new features
-- Write or edit documentation
-- Write code (no patch is too small)
-  - Fix typos
-  - Add comments
-  - Clean up code
-  - Add new features
 
-## Requirements
+## Contact:
+Rebecca Rohrer, rrohrer@health.dohmh.gov
 
-You will need the following things properly installed on your computer.
-
-- [Git](https://git-scm.com/)
-- [Node.js](https://nodejs.org/) (with NPM)
-- [R](https://www.r-project.org/)
-- {Replace this list with the app's dependencies.}
-
-## Local development
-
-- Clone this repo `command`
-- Install Dependencies `command`
-- Start the server `command`
-
-## Architecture
-
-{"Lay of the land" structure of the codebase, components...}
-
-## Backend services
-
-- **Geosupport API** - Description of this service
-- **Service two** - Description of this service
-- **Service three** - Description of this service
-- {Replace this list with the app's backend service dependencies, or remove if not applicable.}
-
-## Testing and checks
-
-- **Update this list** - with the project's QA/QC rules and any testing information; below are examples only
-
-- **ESLint** - We use ESLint with Airbnb's rules for JavaScript projects
-  - Add an ESLint plugin to your text editor to highlight broken rules while you code
-  - You can also run `eslint` at the command line with the `--fix` flag to automatically fix some errors.
-
-- **Testing**
-  - run `ember test --serve`
-  - Before creating a Pull Request, make sure your branch is updated with the latest `develop` and passes all tests
-
-## Deployment
-
-{Description of what type of hosting environment is required, and steps for how you deploy -- e.g `git push dokku master`.}
-
-## Contact us
-
-You can comment on issues and we'll follow up as soon as we can. 
-{Other ways to contact can be entered here}
-
-## Communications disclaimer
-
-With regard to GitHub platform communications, staff from the New York City Department of Health & Mental Hygiene are authorized to answer specific questions of a technical nature with regard to this repository. Staff may not disclose private or sensitive data. 
