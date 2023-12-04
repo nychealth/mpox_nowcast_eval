@@ -1,0 +1,6 @@
+﻿NOTE: Please read ReadMe file,
+Variable Name,Description
+dx_date,Specimen collection date of first positive mpox laboratory result
+dx_report_date,Date report of first positive mpox laboratory result was received by the Health Department
+onset_date,Mpox symptom onset date
+onset_report_date,Date symptom onset date was received by the Health Department
