@@ -110,7 +110,7 @@ nowcast_compare <- function(date_conducted,restrict_weeks,data,strat,timeunit,on
       #Execute nowcast 
       NCoV_nowcastD <- NobBS.strat(data=data_nc, now=date_conducted, specs=list(nAdapt=10000,dist="NB"),
                                    units=timeunit,onset_date="onset_var",report_date="rept_var",
-                                   strat="race_ethnicity",
+                                   strata="race_ethnicity",
                                    quiet=FALSE)
       
       nowcasted_master <- rbind(nowcasted_master,
@@ -133,7 +133,7 @@ nowcast_compare <- function(date_conducted,restrict_weeks,data,strat,timeunit,on
       #Execute nowcast
       NCoV_nowcastD <- NobBS.strat(data=data_nc, now=date_conducted, specs=list(nAdapt=10000,dist="NB"),
                              units=timeunit,onset_date="onset_var",report_date="rept_var",
-                             strat="race_ethnicity",
+                             strata="race_ethnicity",
                              quiet=FALSE)
       print(NCoV_nowcastD$estimates)
       
