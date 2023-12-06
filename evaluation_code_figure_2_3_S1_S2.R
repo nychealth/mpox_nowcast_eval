@@ -498,7 +498,7 @@ ggsave(filename="evaluation_figure_S2.png", path=dataset_path, plot=p_onset_week
 #   scale_color_manual(name="Nowcasting scenario", values = c("#000000","#5a5a5a","#fc8d62","#8da0cb","#e78ac3","#a6d854","#ffd92f")) +
 #   scale_fill_manual(values = c("#5a5a5a"), name="Nowcasting scenario") +
 #   scale_x_date(breaks = data_toplot$DIAGNOSIS_DATE, labels = data_toplot_labels$label, expand=c(0,0)) +
-#   scale_y_continuous(expand=c(0,0))+
+#   scale_y_continuous(expand=c(0,0), breaks=seq(0,125,10), labels=y_labels_daily)+
 #   theme_classic() +
 #   labs(x="Diagnosis date (daily)",
 #        y = "Confirmed and probable cases",
