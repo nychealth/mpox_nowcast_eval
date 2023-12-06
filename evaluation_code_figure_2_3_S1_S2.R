@@ -73,7 +73,7 @@ data_toplot <- plot_totals %>%
                                 TRUE ~ as.numeric(NA)),
          lower_edit = case_when((method == "14 day") ~ lower,
                             TRUE ~ as.numeric(NA)),
-         upper_edit_crop = case_when(upper_edit >= 125 ~ 125, #cutting off above 125 95% PI for clarity
+         upper_edit_crop = case_when(upper_edit >= 120 ~ 120, #cutting off above 120 95% PI for clarity
                                             TRUE ~ upper_edit),
          method = factor(method, levels = c("Actual", "14 day", "21 day", "28 day", "35 day", "42 day", "49 day")),
          dx_date = as.Date(dx_date))
@@ -87,6 +87,7 @@ data_toplot_labels <- data_toplot %>%
                          ifelse( lubridate::wday(dx_date) == 3, 
                           format( dx_date, "%d%b" ), 
                           "" ) ))
+y_labels_daily <- c(0,"",20,"",40,"",60,"",80,"",100,"",120)
 
 p_dx <- ggplot(data_toplot) +
   geom_ribbon(data=data_toplot %>% filter(!is.na(lower_edit)), aes(x=dx_date, ymin=lower_edit, ymax=upper_edit_crop,
@@ -99,12 +100,12 @@ p_dx <- ggplot(data_toplot) +
   scale_color_manual(name="Nowcasting scenario", values = c("#000000","#5a5a5a","#fc8d62","#8da0cb","#e78ac3","#a6d854","#ffd92f")) +
   scale_fill_manual(values = c("#5a5a5a"), name="Nowcasting scenario") +
   scale_x_date(breaks = data_toplot$dx_date, labels = data_toplot_labels$label, expand=c(0,0)) +
-  scale_y_continuous(expand=c(0,0))+
+  scale_y_continuous(expand=c(0,0), breaks=seq(0,125,10), labels=y_labels_daily)+
   theme_classic() +
   labs(x="Diagnosis date (daily)",
        y = "Confirmed and probable cases",
        color= "Nowcasting scenario") +
-  theme(axis.text.x = element_text(angle = 90),
+  theme(axis.text.x = element_text(angle = 90, vjust = .5),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
         strip.text = element_text(face = "bold")) +
@@ -205,7 +206,7 @@ p_dx_weekly <- ggplot(data_toplot_weekly) +
   labs(x="Diagnosis week ending",
        y = "Confirmed and probable cases",
        color= "Nowcasting scenario") +
-  theme(axis.text.x = element_text(angle = 90),
+  theme(axis.text.x = element_text(angle = 90, vjust = .5),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
         strip.text = element_text(face = "bold")) +
@@ -265,7 +266,7 @@ data_toplot <- plot_totals %>%
                                 TRUE ~ as.numeric(NA)),
          lower_edit = case_when((method == "21 day") ~ lower,
                                 TRUE ~ as.numeric(NA)),
-         upper_edit_crop = case_when(upper_edit >= 125 ~ 125,
+         upper_edit_crop = case_when(upper_edit >= 120 ~ 120,
                                      TRUE ~ upper_edit),
          method = factor(method, levels = c("Actual", "14 day", "21 day", "28 day", "35 day", "42 day", "49 day")),
          onset_date = as.Date(onset_date)) 
@@ -288,12 +289,12 @@ p_onset <- ggplot(data_toplot) +
   scale_color_manual(values = c("#000000","#66c2a5","#5a5a5a","#8da0cb","#e78ac3","#a6d854","#ffd92f")) +
   scale_fill_manual(values = c("#5a5a5a"), name="Nowcasting scenario") +
   scale_x_date(breaks = data_toplot$onset_date, labels= data_toplot_labels$label, expand=c(0,0)) +
-  scale_y_continuous(expand=c(0,0))+
+  scale_y_continuous(expand=c(0,0), breaks=seq(0,125,10), labels=y_labels_daily) +
   theme_classic() +
   labs(x="Onset date (daily)",
        y = "Confirmed and probable cases",
        color= "Nowcasting scenario") +
-  theme(axis.text.x = element_text(angle = 90),
+  theme(axis.text.x = element_text(angle = 90, vjust = .5),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
         strip.text = element_text(face = "bold")) +
@@ -383,7 +384,7 @@ p_onset_weekly <- ggplot(data_toplot_weekly_onset) +
   labs(x="Onset week ending",
        y = "Confirmed and probable cases",
        color= "Nowcasting scenario") +
-  theme(axis.text.x = element_text(angle = 90),
+  theme(axis.text.x = element_text(angle = 90, vjust = .5),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank(),
         strip.text = element_text(face = "bold")) +
@@ -471,7 +472,7 @@ ggsave(filename="evaluation_figure_S2.png", path=dataset_path, plot=p_onset_week
 #                                 TRUE ~ as.numeric(NA)),
 #          lower_edit = case_when((method == "14 day") ~ lower,
 #                                 TRUE ~ as.numeric(NA)),
-#          upper_edit_crop = case_when(upper_edit >= 125 ~ 125, #cutting off above 125 95% PI for clarity
+#          upper_edit_crop = case_when(upper_edit >= 120 ~ 120, #cutting off above 120 95% PI for clarity
 #                                      TRUE ~ upper_edit),
 #          method = factor(method, levels = c("Actual", "14 day", "21 day", "28 day", "35 day", "42 day", "49 day")),
 #          DIAGNOSIS_DATE = as.Date(DIAGNOSIS_DATE),
@@ -502,7 +503,7 @@ ggsave(filename="evaluation_figure_S2.png", path=dataset_path, plot=p_onset_week
 #   labs(x="Diagnosis date (daily)",
 #        y = "Confirmed and probable cases",
 #        color= "Nowcasting scenario") +
-#   theme(axis.text.x = element_text(angle = 90),
+#   theme(axis.text.x = element_text(angle = 90, vjust = .5),
 #         panel.grid.major.x = element_blank(),
 #         panel.grid.minor.x = element_blank(),
 #         strip.text = element_text(face = "bold")) +
