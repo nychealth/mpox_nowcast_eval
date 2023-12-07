@@ -28,5 +28,5 @@ To run the code, set up two folders: one containing the 6 R program files and on
 
 
 ## Contact:
-Rebecca Rohrer, rrohrer@health.dohmh.gov
+Rebecca Rohrer, rrohrer@health.nyc.gov
 
