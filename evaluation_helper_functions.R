@@ -1,7 +1,9 @@
 #Conduct mpox nowcasting evaluation
 
 #Analyst: Rebecca Rohrer
-#Last updated 12/4/2023
+#Code review: Allegra Wilson
+#Helper functions are based on code originally written by Rebecca Kahn
+#Last updated 12/7/2023
 
 # This code contains helper functions for the evaluation
 
@@ -30,7 +32,7 @@ Metrics <- function(data, incl_weekend = T, scenario_name){
   # incl_weekend: indicates whether estimates on weekends should be included in the calculation of metrics
   # Defaults to including weekends with incl_weekend = T if no value provided
   # scenario_name: a string to populate a column called scenario, to be used if multiple scenarios are being compared
-  #Filters to nowcasts performed on Tuesday
+  #Filters to nowcasts for periods ending on a Tuesday
   
   if(incl_weekend == F){ 
     data <- data %>%
@@ -40,7 +42,7 @@ Metrics <- function(data, incl_weekend = T, scenario_name){
   data %>%
     filter(date_conducted <= as.Date("2022-09-27")) %>%
     mutate(dow_conducted = lubridate::wday(date_conducted)) %>%
-    filter(dow_conducted == 3) %>% #To simulate nowcasting on Wednesdays with data through Tuesdays, we use "conducted on" Tuesdays
+    filter(dow_conducted == 3) %>% #To mimic nowcasting on Wednesdays with data through Tuesdays, we use "conducted on" Tuesdays
     mutate(n = as.numeric(n),
            estimate = as.numeric(estimate),) %>%
     summarise(scenario = scenario_name,
@@ -55,7 +57,7 @@ Metrics <- function(data, incl_weekend = T, scenario_name){
   data %>%
     filter(date_conducted <= as.Date("2022-09-27")) %>%
     mutate(dow_conducted = lubridate::wday(date_conducted)) %>%
-    filter(dow_conducted == 3) %>% #To simulate nowcasting on Wednesdays with data through Tuesdays, we use "conducted on" Tuesdays
+    filter(dow_conducted == 3) %>% #To mimic nowcasting on Wednesdays with data through Tuesdays, we use "conducted on" Tuesdays
     mutate(n = as.numeric(n)) %>%
     filter(n != 0) %>% #exclude values where n = 0 ONLY in rRMSE
     summarise(scenario = scenario_name,
@@ -80,12 +82,16 @@ WriteCSVToFolder <- function(data, filename){
 nowcast_compare <- function(date_conducted,restrict_weeks,data,strat,timeunit,onset_var,rept_var){
   # This function takes parameters and returns a series of nowcasts. Should be called from within DataManageNowcast()
   # "date_conducted" is the day the first nowcast is done, using a time period of "restrict_weeks" 
-  # if date_conducted is "2020-03-16" and restrict_weeks is 3, nowcasts will be done using data from 2/24-3/15
-  # the function outputs the last week of data so in this example, nowcasted estimates for 3/9-3/15 will be reported
+  # if date_conducted is "2022-08-02" and restrict_weeks is 3, nowcasts will be done using data from 7/13 through 8/2
+  # the function outputs the last week of data so in this example, nowcasted estimates for 7/27 through 8/2 will be reported
+  # In the real-time analysis, we added a lag of 1 day to allow data accrual (ex. conduct on Wednesdays with data from Wednesday-Tuesday), 
+  # but to simulate nowcasts retrospectively, we did not include the lag (ex. conduct on Tuesdays with data from Wednesday-Tuesday)
   # "data" is the input data
   # if "strat" = TRUE, a stratified nowcast by race/ethnicity is done
-  # onset_var is the name as a string of the column of interest you're using as the onset date within the analysis data frame
-  # rept_var is the name as a string of the column of interest you're using as the onset report date within the analysis data frame
+  # onset_var is the name as a string of the column of interest you're using as the "onset_date" for NobBS within the analysis data frame
+    # In this analysis that is either the diagnosis date or onset date
+  # rept_var is the name as a string of the column of interest you're using as the "report_date" for NobBS within the analysis data frame
+    # In this analysis that is either the diagnosis report date or the onset report date
   
   date_conducted <- as.Date(date_conducted) # day doing the nowcasting
   
@@ -337,7 +343,7 @@ DataManageNowcast <- function(date_conducted,restrict_weeks,data,strat,onset_var
     
   }
   
-  # Perform evaluation using nowcasted function and diagnosis date code
+  # Conduct evaluation using nowcasted function and diagnosis date code
   if(timeunit == "1 day"){
     dates_conducted <- seq(date_conducted,as.Date("2022-09-27"),"1 day")
   }
@@ -351,7 +357,7 @@ DataManageNowcast <- function(date_conducted,restrict_weeks,data,strat,onset_var
     day <- as.Date(day,origin="1970-01-01")
     cat(lubridate::wday(as.Date(day,origin="1970-01-01")))
     
-    ### perform nowcasting
+    ### conduct nowcasting
     date_conducted <- day # day first nowcast is done (excluding this day)
     
     # do for all
@@ -393,7 +399,7 @@ DataManageNowcast <- function(date_conducted,restrict_weeks,data,strat,onset_var
 
 ManageNowcastOutputToGraph <- function(file_name, method_name, include_weekend, r_e = FALSE, type){
   #Function to read csv, filter the dataset and assign method in preparation for graphing
-  #Filters to nowcasts performed on Tuesday 
+  #Filters to nowcasts conducted on Tuesday 
   
   dataset <- read.csv(paste0(dataset_path,file_name))
   

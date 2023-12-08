@@ -1,14 +1,15 @@
 #Conduct mpox nowcasting evaluation
 
 #Analyst: Rebecca Rohrer
-#Last updated 10/18/2023
+#Code review: Allegra Wilson
+#Last updated 12/7/2023
 
 ## Run this code file third (3/4) ##
 
-# This code calculates the median dispersion ratio from Poisson regression models of mpox cases diagnosed among New York City residents during July 8–September 30, 2022, 
-# by diagnosis date and by onset date, for the nowcasting evaluation scenarios with best-performing temporal unit and window length. 
-# The evaluation period uses dates of diagnosis and onset from July 08, 2022 
-# to effective end date September 27, 2022. We check the dispersion ratio for the full study period and selected 
+# This code calculates the median dispersion ratio from Poisson regression models of mpox cases diagnosed among New York City residents from July 8 through September 30, 2022, 
+# by diagnosis date and by onset date, for the nowcasting evaluation scenarios with the temporal units and period lengths used in real time. 
+# The evaluation period uses dates of diagnosis and onset from July 8, 2022 
+# through effective end date September 27, 2022. We check the dispersion ratio for the full study period and selected 
 # windows within these dates. 
 
 # This code populates:

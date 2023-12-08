@@ -1,23 +1,24 @@
 #Conduct mpox nowcasting evaluation
 
 #Analyst: Rebecca Rohrer
-#Last updated 12/4/2023
+#Code review: Allegra Wilson
+#Last updated 12/7/2023
 
 ## Run this code file second (2/4) ##
 
 # This code generates performance measures for hindcasting approaches in Nowcasting by Bayesian Smoothing (NobBS), 
-# applied to mpox cases diagnosed among New York City residents during July 8–October 31, 2022.
+# applied to mpox cases diagnosed among New York City residents from July 8 through September 30, 2022.
 
 # The code populates:
 # Table 4 (daily time unit performance metrics)
 # Table S2 (weekly time unit performance metrics)
 
 #Note: It takes a long time to run this whole file - better to source files that have 
-#already been created starting at line 166 after the first time generating the nowcast evaluation files
+#already been created starting at line 167 after the first time generating the nowcast evaluation files
 
-#Data management for adf and adf_onset
-#Weekly versions need to be grouped by Wednesday-Tuesday weeks
-#Tuesday dates to name week numbers "week ending" that Tuesday (ex. week 1 is the week ending 07-19-2022)
+#Weekly versions are grouped by Wednesday-Tuesday weeks
+#Note that the daily results produced below are later filtered to only those conducted on
+#Tuesdays when metrics are generated (dow_conducted == 3)
 
 # Produce results for the scenarios we're testing ----
 #Diagnosis ----

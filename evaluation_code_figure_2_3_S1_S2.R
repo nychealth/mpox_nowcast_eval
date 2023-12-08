@@ -1,13 +1,14 @@
 #Conduct mpox nowcasting evaluation
 
 #Analyst: Rebecca Rohrer
-#Last updated 12/10/2023
+#Code review: Allegra Wilson
+#Last updated 12/7/2023
 
 ## Run this code file fourth (4/4) ##
 
 #This code generates figures that visualize the comparison of by-day and by-week hindcasts of reported and estimated 
 #but not-yet-reported number of confirmed and probable cases among New York City residents 
-#diagnosed with mpox during July 8–September 27, 2022.
+#diagnosed with mpox from July 8 through September 27, 2022.
 
 # This code populates:
 # Figure 2 

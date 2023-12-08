@@ -1,7 +1,9 @@
 #Conduct mpox nowcasting evaluation
 
 #Analyst: Rebecca Rohrer
-#Last updated 12/4/2023
+#Code review: Allegra Wilson
+#Analysis structure is based on code originally written by Rebecca Kahn
+#Last updated 12/7/2023
 
 ## Run this code file first (1/4) ##
 

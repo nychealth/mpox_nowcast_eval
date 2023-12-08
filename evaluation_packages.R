@@ -1,7 +1,8 @@
 #Mpox nowcasting evaluation packages
 
 #Analyst: Rebecca Rohrer
-#Last updated 12/4/2023
+#Code review: Allegra Wilson
+#Last updated 12/7/2023
 
 #This code loads required packages
 #The code requires installing NobBS and JAGS
