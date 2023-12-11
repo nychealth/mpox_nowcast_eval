@@ -85,7 +85,7 @@ nowcast_compare <- function(date_conducted,restrict_weeks,data,strat,timeunit,on
   # if date_conducted is "2022-08-02" and restrict_weeks is 3, nowcasts will be done using data from 7/13 through 8/2
   # the function outputs the last week of data so in this example, nowcasted estimates for 7/27 through 8/2 will be reported
   # In the real-time analysis, we added a lag of 1 day to allow data accrual (ex. conduct on Wednesdays with data from Wednesday-Tuesday), 
-  # but to simulate nowcasts retrospectively, we did not include the lag (ex. conduct on Tuesdays with data from Wednesday-Tuesday)
+  # but to mimic nowcasts retrospectively, we did not include the lag (ex. conduct on Tuesdays with data from Wednesday-Tuesday)
   # "data" is the input data
   # if "strat" = TRUE, a stratified nowcast by race/ethnicity is done
   # onset_var is the name as a string of the column of interest you're using as the "onset_date" for NobBS within the analysis data frame

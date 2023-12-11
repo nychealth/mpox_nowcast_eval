@@ -2,7 +2,7 @@
 
 #Analyst: Rebecca Rohrer
 #Code review: Allegra Wilson
-#Analysis structure is based on code originally written by Rebecca Kahn
+#Evaluation code structure is based on code originally written by Rebecca Kahn
 #Last updated 12/7/2023
 
 ## Run this code file first (1/4) ##
