@@ -18,6 +18,7 @@ conflict_prefer("filter", "dplyr")
 conflict_prefer("summarize", "dplyr")
 conflict_prefer("select", "dplyr")
 conflict_prefer("wday", "lubridate")
+conflict_prefer("mutate", "dplyr")
 
 # R version 4.2.3 (2023-03-15)
 # Platform: x86_64-redhat-linux-gnu (64-bit)

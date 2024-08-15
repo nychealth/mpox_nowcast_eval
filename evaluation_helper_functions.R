@@ -15,7 +15,7 @@
 rRMSE <- function(predicted,true){
   #This function returns the relative root mean square error of two columns, predicted and true
   #Note this is infinite if the true number of cases is ever zero.
-  round(sqrt(mean(((predicted-true)/true)^2)), digits = 5)
+  round(sqrt(mean(((predicted-true)/true)^2)), digits = 2)
 }
 
 # MAE
@@ -46,9 +46,11 @@ Metrics <- function(data, incl_weekend = T, scenario_name){
     mutate(n = as.numeric(n),
            estimate = as.numeric(estimate),) %>%
     summarise(scenario = scenario_name,
-              MAE = MAE(estimate, n),
-              PI_95 = round((sum(in_CI)/n())*100, digits=5),
-              n_observations = n(),
+              MAE = round(MAE(estimate, n), digits=2),
+              PI_95 = round((sum(in_CI)/n())*100, digits=2),
+              avg_score = round(exp(mean(log_bin_prob_clean)), digits=2),
+              n_estimates = n(),
+              n_models = n_distinct(date_conducted),
               min_date_conducted = min(date_conducted),
               max_date_conducted = max(date_conducted),
               min_data_var_date = min(onset_var),
@@ -64,7 +66,9 @@ Metrics <- function(data, incl_weekend = T, scenario_name){
               rRMSE = rRMSE(estimate, n)) -> output_2
   
   output <- output %>%
-    left_join(output_2, by = "scenario")
+    left_join(output_2, by = "scenario") %>%
+    select(scenario, MAE, rRMSE, PI_95, avg_score, n_estimates, n_models,
+           min_date_conducted, max_date_conducted, min_data_var_date, max_data_var_date)
   
   
   return(output)
@@ -79,20 +83,17 @@ WriteCSVToFolder <- function(data, filename){
 
 
 
-nowcast_compare <- function(date_conducted,restrict_weeks,data,strat,timeunit,onset_var,rept_var){
+
+nowcast_compare <- function(date_conducted,restrict_weeks,data,strat,timeunit,onset_var,rept_var,diag_day){
   # This function takes parameters and returns a series of nowcasts. Should be called from within DataManageNowcast()
   # "date_conducted" is the day the first nowcast is done, using a time period of "restrict_weeks" 
-  # if date_conducted is "2022-08-02" and restrict_weeks is 3, nowcasts will be done using data from 7/13 through 8/2
-  # the function outputs the last week of data so in this example, nowcasted estimates for 7/27 through 8/2 will be reported
-  # In the real-time analysis, we added a lag of 1 day to allow data accrual (ex. conduct on Wednesdays with data from Wednesday-Tuesday), 
-  # but to mimic nowcasts retrospectively, we did not include the lag (ex. conduct on Tuesdays with data from Wednesday-Tuesday)
+  # if date_conducted is "2020-03-16" and restrict_weeks is 3, nowcasts will be done using data from 2/24-3/15
+  # the function outputs the last week of data so in this example, nowcasted estimates for 3/9-3/15 will be reported
   # "data" is the input data
   # if "strat" = TRUE, a stratified nowcast by race/ethnicity is done
-  # onset_var is the name as a string of the column of interest you're using as the "onset_date" for NobBS within the analysis data frame
-    # In this analysis that is either the diagnosis date or onset date
-  # rept_var is the name as a string of the column of interest you're using as the "report_date" for NobBS within the analysis data frame
-    # In this analysis that is either the diagnosis report date or the onset report date
-  
+  # onset_var is the name as a string of the column of interest you're using as the onset date within the analysis data frame
+  # rept_var is the name as a string of the column of interest you're using as the onset report date within the analysis data frame
+
   date_conducted <- as.Date(date_conducted) # day doing the nowcasting
   
   ## stratified analysis ----
@@ -114,15 +115,68 @@ nowcast_compare <- function(date_conducted,restrict_weeks,data,strat,timeunit,on
       
       
       #Execute nowcast 
-      NCoV_nowcastD <- NobBS.strat(data=data_nc, now=date_conducted, specs=list(nAdapt=10000,dist="NB"),
+      nowcastD <- NobBS.strat(data=data_nc, now=date_conducted, specs=list(nAdapt=10000,dist="NB"),
                                    units=timeunit,onset_date="onset_var",report_date="rept_var",
                                    strata="race_ethnicity",
                                    quiet=FALSE)
       
       nowcasted_master <- rbind(nowcasted_master,
-                                NCoV_nowcastD$estimates %>% 
+                                nowcastD$estimates %>% 
                                   subset(onset_date <= max & onset_date >=max-6)) # save just the last week
       
+      true_ns <- diag_day %>%
+        subset(onset_var <= max & onset_var >=max-6) %>%
+        rename(true_n = n)
+      
+      bins_5 <- seq(0,39,by=5) #set after reviewing range of counts
+      
+      true_ns$bin_of_truecases <- bins_5[findInterval(true_ns$true_n,bins_5)]
+      
+      true_ns$top_of_bin_truecases <- true_ns$bin_of_truecases +4
+      
+      #Initialize bin_prob column to fill in
+      true_ns$bin_prob <- NA
+      
+      #Use strata options in correct order to match post samps
+      r_e_options <- unique(data_nc[,"race_ethnicity"]) #Per correspondence with Sarah McGough, this is the order of the cols for stratified post samps
+      
+      #Loop through date(s) and the strata options for each date to calculate the log score
+      for(date in unique(true_ns$onset_var)){
+
+      for(i in 1:length(r_e_options)){
+        print(as.Date(date))
+        print(r_e_options[i])
+      #All possible bin values for the bin where the true value fell
+      bottom_top_range <- c(true_ns[true_ns$race_ethnicity == r_e_options[i] & true_ns$onset_var == date, ]$bin_of_truecases:true_ns[true_ns$race_ethnicity == r_e_options[i] & true_ns$onset_var == date, ]$top_of_bin_truecases)
+
+      #Pull out the nowcast.post.samps for the relevant day (starting from t-0 where it is post.samps, then tminus1, tminus2, etc.)
+      ##on the latest day, set it to nowcast.post.samps
+      ##on all other days, calculate which tminus we're on and pull that set of post.samps
+      if(date == max){
+        post.samps <- nowcastD$nowcast.post.samps[[i]] #get vector corresponding to correct r/e
+      }  else {
+        tminus <- as.numeric(max - date) 
+        
+        tminus_samps <- paste0("nowcast.post.samps.tminus", tminus)
+        
+        post.samps <- nowcastD[names(nowcastD) == tminus_samps][[1]][[i]] #unlist and then get vector corresponding to correct r/e
+      }
+      
+      #Set proportion of nowcast.post.samps falling into the bin to the bin prob column
+      true_ns[true_ns$race_ethnicity  == r_e_options[i] & true_ns$onset_var == date, ]$bin_prob[] <- mean(post.samps%in%bottom_top_range)
+      print(true_ns)
+      }
+      }
+  
+      bins_w_prob <- true_ns %>%
+        mutate(log_bin_prob_clean = case_when(bin_prob <= 1e-10 ~ -10,
+                                              TRUE ~ log(bin_prob)),
+               log_bin_prob = log(bin_prob)) 
+      
+      nowcasted_master <- nowcasted_master %>%
+        left_join(bins_w_prob, by = c("onset_date" = "onset_var", "stratum" = "race_ethnicity"))
+      
+      print(nowcasted_master)
     }
     ## by-week ----   
     if(timeunit == "1 week"){
@@ -137,15 +191,60 @@ nowcast_compare <- function(date_conducted,restrict_weeks,data,strat,timeunit,on
       
       
       #Execute nowcast
-      NCoV_nowcastD <- NobBS.strat(data=data_nc, now=date_conducted, specs=list(nAdapt=10000,dist="NB"),
+      nowcastD <- NobBS.strat(data=data_nc, now=date_conducted, specs=list(nAdapt=10000,dist="NB"),
                              units=timeunit,onset_date="onset_var",report_date="rept_var",
                              strata="race_ethnicity",
                              quiet=FALSE)
-      print(NCoV_nowcastD$estimates)
+      print(nowcastD$estimates)
+      
+      
+      true_ns <- diag_day %>%
+        subset(onset_var == max) %>%
+        rename(true_n = n)
+      
+      
+      bins_20 <- seq(0,179,by=20) #set after reviewing range of counts
+      
+      true_ns$bin_of_truecases <- bins_20[findInterval(true_ns$true_n,bins_20)]
+      
+      true_ns$top_of_bin_truecases <- true_ns$bin_of_truecases +19
+      
+      #Initialize bin_prob column to fill in
+      true_ns$bin_prob <- NA
+      
+      #Use strata options in correct order to match post samps
+      r_e_options <- unique(data_nc[,"race_ethnicity"]) #Per correspondence with Sarah McGough, this is the order of the cols for stratified post samps
+      
+      #Loop through date(s) and the strata options for each date to calculate the log score
+      for(date in unique(true_ns$onset_var)){
+        print(date)
+      for(i in 1:length(r_e_options)){
+        print(i)
+        
+      #All possible bin values for the bin where the true value fell
+      bottom_top_range <- c(true_ns[true_ns$race_ethnicity == r_e_options[i] & true_ns$onset_var == date, ]$bin_of_truecases:true_ns[true_ns$race_ethnicity == r_e_options[i] & true_ns$onset_var == date, ]$top_of_bin_truecases)
+
+      
+      #Set proportion of nowcast.post.samps falling into the bin to the bin prob column
+      true_ns[true_ns$race_ethnicity  == r_e_options[i] & true_ns$onset_var == date, ]$bin_prob[] <- 
+        mean(nowcastD$nowcast.post.samps[[i]]%in%bottom_top_range)
+      }
+      }
+      print(true_ns)
+      
+      bins_w_prob <- true_ns %>%
+        mutate(log_bin_prob_clean = case_when(bin_prob <= 1e-10 ~ -10,
+                                              TRUE ~ log(bin_prob)),
+               log_bin_prob = log(bin_prob)) 
       
       nowcasted_master <- rbind(nowcasted_master,
-                                NCoV_nowcastD$estimates %>% 
+                                nowcastD$estimates %>% 
                                   subset(onset_date == max)) # save just the last week for by-week (max)
+      
+      nowcasted_master <- nowcasted_master %>%
+        left_join(bins_w_prob, by = c("onset_date" = "onset_var", "stratum" = "race_ethnicity"))
+      
+
       
     }
     
@@ -165,17 +264,68 @@ nowcast_compare <- function(date_conducted,restrict_weeks,data,strat,timeunit,on
       
 
       #Execute nowcast 
-      NCoV_nowcastD <- NobBS(data=data_nc, now=date_conducted, specs=list(nAdapt=10000,dist="NB"),
+      nowcastD <- NobBS(data=data_nc, now=date_conducted, specs=list(nAdapt=10000,dist="NB"),
                              units=timeunit,onset_date="onset_var",report_date="rept_var",
                              quiet=FALSE)
       
       nowcasted_master <- rbind(nowcasted_master,
-                                NCoV_nowcastD$estimates %>% 
+                                nowcastD$estimates %>% 
                                   subset(onset_date <= max & onset_date >=max-6)) # save just the last week
+     
+      
+      true_ns <- diag_day %>%
+        subset(onset_var <= max & onset_var >=max-6) %>%
+        rename(true_n = n)
+      
+      bins_10 <- seq(0,99,by=10) #set after reviewing range of counts
+      
+      true_ns$bin_of_truecases <- bins_10[findInterval(true_ns$true_n,bins_10)]
+      
+      true_ns$top_of_bin_truecases <- true_ns$bin_of_truecases +9
+      
+      #Initialize bin_prob column to fill in
+      true_ns$bin_prob <- NA
+      
+      #Loop through date(s) and the strata options for each date to calculate the log score
+      for(date in unique(true_ns$onset_var)){
+          print(as.Date(date))
+
+          #All possible bin values for the bin where the true value fell
+          bottom_top_range <- c(true_ns[true_ns$onset_var == date, ]$bin_of_truecases:true_ns[true_ns$onset_var == date, ]$top_of_bin_truecases)
+          
+          #Pull out the nowcast.post.samps for the relevant day (starting from t-0 where it is post.samps, then tminus1, tminus2, etc.)
+          ##on the latest day, set it to nowcast.post.samps
+          ##on all other days, calculate which tminus we're on and pull that set of post.samps
+          if(date == max){
+            post.samps <- nowcastD$nowcast.post.samps #get vector of post.samps
+          }  else {
+            tminus <- as.numeric(max - date) 
+            
+            tminus_samps <- paste0("nowcast.post.samps.tminus", tminus)
+            
+            post.samps <- nowcastD[names(nowcastD) == tminus_samps][[1]] #unlist vector of post.samps for the correct day
+          }
+          
+          #Set proportion of nowcast.post.samps falling into the bin to the bin prob column
+          true_ns[true_ns$onset_var == date, ]$bin_prob[] <- 
+            mean(post.samps%in%bottom_top_range)
+          print(true_ns)
+        }
+      
+      
+      bins_w_prob <- true_ns %>%
+        mutate(log_bin_prob_clean = case_when(bin_prob <= 1e-10 ~ -10,
+                                              TRUE ~ log(bin_prob)),
+               log_bin_prob = log(bin_prob)) 
+      
+      nowcasted_master <- nowcasted_master %>%
+        left_join(bins_w_prob, by = c("onset_date" = "onset_var"))
+      
+      print(nowcasted_master)
       
     } 
     
-    ## by-week ----   
+# by-week ----   
     if(timeunit == "1 week"){
       data %>%     # Restrict to X weeks - rept var needs to be in timeframe
         subset(as.Date(onset_var) >= min & as.Date(onset_var) <= max) %>% 
@@ -184,14 +334,35 @@ nowcast_compare <- function(date_conducted,restrict_weeks,data,strat,timeunit,on
       
       
       #Execute nowcast
-      NCoV_nowcastD <- NobBS(data=data_nc, now=date_conducted, specs=list(nAdapt=10000,dist="NB"),
+      nowcastD <- NobBS(data=data_nc, now=date_conducted, specs=list(nAdapt=10000,dist="NB"),
                              units=timeunit,onset_date="onset_var",report_date="rept_var",
                              quiet=FALSE)
-      print(NCoV_nowcastD$estimates)
+      print(nowcastD$estimates)
       
       nowcasted_master <- rbind(nowcasted_master,
-                                NCoV_nowcastD$estimates %>% 
+                                nowcastD$estimates %>% 
                                   subset(onset_date == max)) # save just the last week for weekly (max)
+  
+      
+      true_ns <- diag_day %>%
+        subset(onset_var == max) %>%
+        rename(true_n = n)
+      
+      bins_50 <- seq(0,549,by=50)
+      
+      true_ns$bin_of_truecases <- bins_50[findInterval(true_ns$true_n,bins_50)]
+      true_ns$top_of_bin_truecases <- true_ns$bin_of_truecases +49
+      
+      true_ns$bin_prob <- mean(nowcastD$nowcast.post.samps%in%c(true_ns$bin_of_truecases:(true_ns$top_of_bin_truecases))) 
+      
+      bins_w_prob <- true_ns %>%
+        mutate(log_bin_prob_clean = case_when(bin_prob <= 1e-10 ~ -10,
+                                              TRUE ~ log(bin_prob)),
+               log_bin_prob = log(bin_prob)) 
+      
+      nowcasted_master <- nowcasted_master %>%
+        left_join(bins_w_prob, by = c("onset_date" = "onset_var"))
+      
       print(nowcasted_master)
      
     }
@@ -361,9 +532,8 @@ DataManageNowcast <- function(date_conducted,restrict_weeks,data,strat,onset_var
     date_conducted <- day # day first nowcast is done (excluding this day)
     
     # do for all
-    nowcasted_test <- nowcast_compare(date_conducted=date_conducted,restrict_weeks=restrict_weeks,data=data,onset_var=onset_var,rept_var=rept_var,timeunit=timeunit,strat=strat) 
-    
-    print(nowcasted_test)
+	nowcasted_test <- nowcast_compare(date_conducted=date_conducted,restrict_weeks=restrict_weeks,data=data,onset_var=onset_var,rept_var=rept_var,timeunit=timeunit,strat=strat,diag_day=diag_day) 
+	print(nowcasted_test)
     
     # compare nowcasted data to actual
     if(strat==FALSE){
