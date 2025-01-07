@@ -1,7 +1,7 @@
 # Mpox-nowcasting-evaluation
 ## Nowcasting to Monitor Real-Time Mpox Trends During the 2022 Outbreak in New York City: Evaluation Using Reportable Disease Data Stratified by Race or Ethnicity
 
-Rohrer R, Wilson A, Baumgartner J, Burton N, Ortiz RR, Dorsinville A, Jones LE, Greene SK. Nowcasting to Monitor Real-Time Mpox Trends During the 2022 Outbreak in New York City: Evaluation Using Reportable Disease Data Stratified by Race or Ethnicity. Online J Public Health Inform 2024;16:e56495. URL: https://ojphi.jmir.org/2024/1/e56495. doi: 10.2196/56495.
+Rohrer R, Wilson A, Baumgartner J, Burton N, Ortiz RR, Dorsinville A, Jones LE, Greene SK. Nowcasting to Monitor Real-Time Mpox Trends During the 2022 Outbreak in New York City: Evaluation Using Reportable Disease Data Stratified by Race or Ethnicity. Online J Public Health Inform 2025;17:e56495. URL: https://ojphi.jmir.org/2025/1/e56495. doi: 10.2196/56495.
 
 This repository contains the dataset, code, and codebook for the above paper. These files to produce key unstratified results are provided to support open and reproducible epidemiology and to fulfill journal data availability requirements. Data for stratified results, given small cell sizes, are not provided to protect patient confidentiality.
 
